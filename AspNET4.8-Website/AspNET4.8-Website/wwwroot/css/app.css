@@ -1,0 +1,9 @@
+﻿﻿@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.tableheader {
+    @apply p-2 border-b-4 border-purple-600 text-left uppercase text-sm tracking-wider;
+}
+
+/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi4uLy4uL1N0eWxlcy9hcHAuY3NzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiJBQUFBIiwiZmlsZSI6ImFwcC5jc3MiLCJzb3VyY2VzQ29udGVudCI6WyLvu7/vu79AdGFpbHdpbmQgYmFzZTtcclxuQHRhaWx3aW5kIGNvbXBvbmVudHM7XHJcbkB0YWlsd2luZCB1dGlsaXRpZXM7XHJcblxyXG4udGFibGVoZWFkZXIge1xyXG4gICAgQGFwcGx5IHAtMiBib3JkZXItYi00IGJvcmRlci1wdXJwbGUtNjAwIHRleHQtbGVmdCB1cHBlcmNhc2UgdGV4dC1zbSB0cmFja2luZy13aWRlcjtcclxufVxyXG4iXX0= */
