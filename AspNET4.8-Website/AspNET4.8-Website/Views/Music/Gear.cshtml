@@ -5,14 +5,17 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2 class="text-white">Gear</h2>
+<h2  class="text-purple-100 text-8xl font-bold mb-4 mt-[111px]">Gear I use: </h2>
 
 @foreach (Gear g in Model)
 {
-    <div class="gear-container">
-        <img src="@g.Filepath" style="height: 200px; width: 200px"/>
-        <h1 style="width: 400px">@g.Name</h1>
-        <p>@g.Description</p>
+    <div class="gear-container row">
+        <img class="" src="@g.Filepath" style="height: 200px; width: 200px"/>
+        <div class="col-lg-11 gear-container-text">
+            <p class="h5 mb-4 font-bold" style="font-size: 30px" >@g.Name:</p>
+            <br/>
+            <p class="">@g.Description</p>
+        </div>
     </div>
 }
 

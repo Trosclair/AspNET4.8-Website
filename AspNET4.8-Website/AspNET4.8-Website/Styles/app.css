@@ -20,7 +20,11 @@
     }
 
     .gear-container {
-        @apply flex items-start justify-start h-96 w-auto hover:shadow-lg rounded-xl text-white;
+        @apply flex items-start h-96 w-auto rounded-xl hover:shadow-2xl;
+    }
+
+    .gear-container-text {
+        @apply hover:text-gray-400 text-gray-500;
     }
 
     .rounded-6xl {
