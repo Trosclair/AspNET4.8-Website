@@ -1,7 +1,7 @@
 ﻿
 <div class="fixed top-0 left-0 h-screen w-32 m-0 flex flex-col bg-gray-900 text-white shadow-sm">
 
-    <div class="sidebar-icon group btn">
+    <div class="sidebar-icon group">
         <img src="~/Images/Sidebar Icons/guitar.png"/>
         <ul class="sidebar-tooltip group-hover:scale-100 text-left">
             <li>@Html.ActionLink("My Favorite Albums", "SelectedSounds", "Music")</li>
@@ -9,6 +9,17 @@
                 <hr class="m-1"/>
             </li>
             <li>@Html.ActionLink("Musical Gear I Use", "Gear", "Music")</li>
+        </ul>
+    </div>
+
+    <div class="sidebar-icon group">
+        <img src="~/Images/Sidebar Icons/controller.png" />
+        <ul class="sidebar-tooltip group-hover:scale-100 text-left">
+            <li>@Html.ActionLink("My Favorite Games", "SelectedGames", "Game")</li>
+            <li>
+                <hr class="m-1" />
+            </li>
+            <li>@Html.ActionLink("Tetris", "Tetris", "Game")</li>
         </ul>
     </div>
 

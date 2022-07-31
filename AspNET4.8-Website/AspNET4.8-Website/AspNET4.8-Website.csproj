@@ -121,6 +121,7 @@
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Controllers\GameController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\MusicController.cs" />
     <Compile Include="Global.asax.cs">
@@ -160,6 +161,7 @@
     <Content Include="Images\Music\Gear\helix.jpg" />
     <Content Include="Images\Music\Gear\jbl speaker.jpg" />
     <Content Include="Images\Music\Gear\ToxicSmokeGreen.jpg" />
+    <Content Include="Images\Sidebar Icons\controller.png" />
     <Content Include="Images\Sidebar Icons\guitar.png" />
     <Content Include="postcss.config.js" />
     <Content Include="Scripts\bootstrap.js" />
@@ -176,6 +178,7 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
+    <Content Include="Scripts\Tetris.js" />
     <Content Include="Styles\app.css" />
     <Content Include="tailwind.config.js" />
     <Content Include="Web.config" />
@@ -195,6 +198,7 @@
     <Content Include="Views\Shared\Sidebar.cshtml" />
     <Content Include="Views\Music\SelectedSounds.cshtml" />
     <Content Include="Views\Music\Gear.cshtml" />
+    <Content Include="Views\Game\Tetris.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
