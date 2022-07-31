@@ -4,19 +4,23 @@
 
 @layer components {
     .sidebar-icon {
-        @apply relative flex items-center justify-center h-24 w-24 mt-4 mb-4 mx-auto shadow-lg bg-gray-800 text-green-500 hover:bg-green-600 hover:text-white rounded-6xl hover:rounded-3xl transition-all duration-300 cursor-pointer ease-linear;
+        @apply relative flex items-center justify-center h-24 w-24 mt-4 mb-4 mx-auto shadow-lg bg-gray-800 text-white hover:bg-purple-800 hover:text-white rounded-6xl hover:rounded-3xl transition-all duration-300 cursor-pointer ease-linear;
     }
 
     .sidebar-tooltip {
-        @apply absolute w-auto p-4 m-4 min-w-max left-24 rounded-md shadow-md text-white bg-gray-900 text-2xl transition-all duration-100 scale-0 origin-left;
+        @apply absolute w-auto p-4 m-4 min-w-max left-20 rounded-md shadow-md text-white bg-gray-600 text-2xl transition-all duration-100 scale-0 origin-left;
     }
 
     .album-icon {
-        @apply relative flex items-center justify-center h-96 w-96 mt-16 mb-16 mx-auto shadow-lg bg-gray-800 text-green-500 hover:bg-green-600 hover:text-white rounded-24xl hover:rounded-6xl transition-all duration-300 cursor-pointer ease-linear;
+        @apply relative flex items-center justify-center h-96 w-96 mt-16 mb-16 mx-auto hover:text-white rounded-24xl hover:rounded-6xl transition-all duration-300 cursor-pointer ease-linear;
     }
 
     .album-tooltip {
-        @apply absolute w-auto p-4 m-4 min-w-max top-96 rounded-md shadow-md text-white bg-gray-900 text-2xl transition-all duration-100 scale-0 origin-left;
+        @apply absolute w-auto p-4 m-4 min-w-max top-92 rounded-md shadow-md text-white bg-gray-900 text-2xl transition-all duration-100 scale-0 origin-left;
+    }
+
+    .gear-container {
+        @apply flex items-start justify-start h-96 w-auto hover:shadow-lg rounded-xl text-white;
     }
 
     .rounded-6xl {
@@ -25,5 +29,9 @@
 
     .rounded-24xl {
         border-radius: 12rem;
+    }
+
+    .top-92 {
+        top: 23rem;
     }
 }

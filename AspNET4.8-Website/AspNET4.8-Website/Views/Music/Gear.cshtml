@@ -1,0 +1,18 @@
+﻿@using Website.Models;
+
+@{
+    ViewBag.Title = "Gear";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2 class="text-white">Gear</h2>
+
+@foreach (Gear g in Model)
+{
+    <div class="gear-container">
+        <img src="@g.Filepath" style="height: 200px; width: 200px"/>
+        <h1 style="width: 400px">@g.Name</h1>
+        <p>@g.Description</p>
+    </div>
+}
+

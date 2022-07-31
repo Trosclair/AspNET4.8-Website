@@ -127,6 +127,7 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\Album.cs" />
+    <Compile Include="Models\Gear.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -142,7 +143,7 @@
     <Content Include="Images\Music\Albums\Pitch Black Progress.jpg" />
     <Content Include="Images\Music\Albums\Days of Future Past.jpg" />
     <Content Include="Images\Music\Albums\The Singularity.jpg" />
-    <Content Include="Images\Music\Albums\Battelions of Fear.jpg" />
+    <Content Include="Images\Music\Albums\Battalions of Fear.jpg" />
     <Content Include="Images\Music\Albums\Beyond the Red Mirror.jpg" />
     <Content Include="Images\Music\Albums\At the Edge of Time.jpg" />
     <Content Include="Images\Music\Albums\Chicago Transit Authority.jpg" />
@@ -154,6 +155,12 @@
     <Content Include="Images\Music\Albums\The Odyssey.jpg" />
     <Content Include="Images\Music\Albums\Symphony X.jpg" />
     <Content Include="Images\Music\Albums\Underworld.jpg" />
+    <Content Include="Images\Music\Gear\BerryBurst.jpg" />
+    <Content Include="Images\Music\Gear\GlossGray.jpg" />
+    <Content Include="Images\Music\Gear\helix.jpg" />
+    <Content Include="Images\Music\Gear\jbl speaker.jpg" />
+    <Content Include="Images\Music\Gear\ToxicSmokeGreen.jpg" />
+    <Content Include="Images\Sidebar Icons\guitar.png" />
     <Content Include="postcss.config.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
@@ -187,6 +194,7 @@
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Views\Shared\Sidebar.cshtml" />
     <Content Include="Views\Music\SelectedSounds.cshtml" />
+    <Content Include="Views\Music\Gear.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
