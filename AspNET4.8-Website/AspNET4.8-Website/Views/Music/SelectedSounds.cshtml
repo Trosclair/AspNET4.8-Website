@@ -1,0 +1,23 @@
+﻿@using Website.Models;
+
+@{
+    ViewBag.Title = "Objectively Good Music";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1 class=" text-purple-800">Things I listen to: </h1>
+
+<div class=" row-span-3">
+    @foreach (Album a in Model)
+    {
+        <div class="col-lg-3">
+            <div class="album-icon group">
+                <img class="album-icon hover:shadow-lg" src="@a.FilePath" />
+                <div class="album-tooltip group-hover:scale-100">
+                    @a.Name
+                </div>
+
+            </div>
+        </div>
+    }
+</div>

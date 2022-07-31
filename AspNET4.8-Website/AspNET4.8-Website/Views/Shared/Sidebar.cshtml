@@ -1,0 +1,17 @@
+﻿
+<div class="fixed top-0 left-0 h-screen w-32 m-0 flex flex-col bg-gray-900 text-white shadow-sm">
+    @for (int i = 0; i < 10; i++)
+    {
+        <button class="sidebar-icon group btn" href="@Url.Action("About", "Home")">
+
+            <ul class="sidebar-tooltip group-hover:scale-100">
+                <li>@Html.ActionLink("Let's Jam!", "SelectedSounds", "Music")</li>
+                <li>
+                    <hr class="m-1"/>
+                </li>
+                <li>@Html.ActionLink("About", "About", "Home")</li>
+                <li>@Html.ActionLink("About", "About", "Home")</li>
+            </ul>
+        </button>
+    }
+</div>

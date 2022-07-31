@@ -122,9 +122,11 @@
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\MusicController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\Album.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -137,6 +139,21 @@
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
+    <Content Include="Images\Music\Albums\Pitch Black Progress.jpg" />
+    <Content Include="Images\Music\Albums\Days of Future Past.jpg" />
+    <Content Include="Images\Music\Albums\The Singularity.jpg" />
+    <Content Include="Images\Music\Albums\Battelions of Fear.jpg" />
+    <Content Include="Images\Music\Albums\Beyond the Red Mirror.jpg" />
+    <Content Include="Images\Music\Albums\At the Edge of Time.jpg" />
+    <Content Include="Images\Music\Albums\Chicago Transit Authority.jpg" />
+    <Content Include="Images\Music\Albums\Gidim.jpg" />
+    <Content Include="Images\Music\Albums\Ultu Ulla.jpg" />
+    <Content Include="Images\Music\Albums\Dingir.jpg" />
+    <Content Include="Images\Music\Albums\ROS.jpg" />
+    <Content Include="Images\Music\Albums\TDWOT.jpg" />
+    <Content Include="Images\Music\Albums\The Odyssey.jpg" />
+    <Content Include="Images\Music\Albums\Symphony X.jpg" />
+    <Content Include="Images\Music\Albums\Underworld.jpg" />
     <Content Include="postcss.config.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
@@ -168,10 +185,11 @@
     <Content Include="Views\Home\About.cshtml" />
     <Content Include="Views\Home\Contact.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
+    <Content Include="Views\Shared\Sidebar.cshtml" />
+    <Content Include="Views\Music\SelectedSounds.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Models\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="fonts\glyphicons-halflings-regular.woff2" />
