@@ -17,7 +17,7 @@ if (!window.requestAnimationFrame) { // http://paulirish.com/2011/requestanimati
         window.oRequestAnimationFrame ||
         window.msRequestAnimationFrame ||
         function (callback, element) {
-            window.setTimeout(callback, 1000 / 60);
+            window.setTimeout(callback, 1);
         }
 }
 
@@ -31,24 +31,28 @@ var KEY = {
     ROTATERIGHT: 75,
     ROTATELEFT: 74,
     HARDDROP: 87,
+    HOLD: 69,
     LEFT: 65,
     RIGHT: 68,
     DOWN: 83
 },
-    DIR = {
-        RIGHT: 0,
-        DOWN: 1,
-        LEFT: 2,
-        ROTATERIGHT: 3,
-        ROTATELEFT: 4,
-        HARDDROP: 5,
-        MIN: 0,
-        MAX: 3
-    },
+DIR = {
+    RIGHT: 0,
+    DOWN: 1,
+    LEFT: 2,
+    ROTATERIGHT: 3,
+    ROTATELEFT: 4,
+    HARDDROP: 5,
+    HOLD: 6,
+    MIN: 0,
+    MAX: 3
+},
     canvas = get('canvas'),
     ctx = canvas.getContext('2d'),
     ucanvas = get('upcoming'),
     uctx = ucanvas.getContext('2d'),
+    hcanvas = get('hold'),
+    hctx = hcanvas.getContext('2d'),
     speed = { start: 0.6, decrement: 0.005, min: 0.1 }, // how long before piece drops by 1 row (seconds)
     nx = 10, // width of tetris court (in blocks)
     ny = 20, // height of tetris court (in blocks)
@@ -65,10 +69,12 @@ var dx, dy,        // pixel size of a single tetris block
     dt,            // time since starting this game
     current,       // the current piece
     next,          // the next piece
+    hold,          // held piece
     score,         // the current score
     vscore,        // the currently displayed score (it catches up to score in small chunks - like a spinning slot machine)
     rows,          // number of completed rows in the current game
-    step;          // how long before current piece drops by 1 row
+    step,          // how long before current piece drops by 1 row
+    hasHeldPiece;
 
 //-------------------------------------------------------------------------
 // tetris pieces
@@ -173,10 +179,14 @@ function resize(event) {
     canvas.height = canvas.clientHeight; // (ditto)
     ucanvas.width = ucanvas.clientWidth;
     ucanvas.height = ucanvas.clientHeight;
+    hcanvas.width = hcanvas.clientWidth;
+    hcanvas.height = hcanvas.clientHeight;
     dx = canvas.width / nx; // pixel size of a single tetris block
     dy = canvas.height / ny; // (ditto)
-    invalidate();
-    invalidateNext();
+    needsRefresh.court = true;
+    needsRefresh.next = true;
+    needsRefresh.hold = true;
+    hold = null;
 }
 
 function keydown(ev) {
@@ -189,6 +199,7 @@ function keydown(ev) {
             case KEY.ROTATELEFT: actions.push(DIR.ROTATELEFT); handled = true; break;
             case KEY.DOWN: actions.push(DIR.DOWN); handled = true; break;
             case KEY.HARDDROP: actions.push(DIR.HARDDROP); handled = true; break;
+            case KEY.HOLD: actions.push(DIR.HOLD); handled = true; break;
             case KEY.ESC: lose(); handled = true; break;
         }
     }
@@ -207,28 +218,27 @@ function keydown(ev) {
 function play() { hide('start'); reset(); playing = true; }
 function lose() { show('start'); setVisualScore(); playing = false; }
 
-function setVisualScore(n) { vscore = n || score; invalidateScore(); }
+function setVisualScore(n) { vscore = n || score; needsRefresh.score = true; }
 function setScore(n) { score = n; setVisualScore(n); }
 function addScore(n) { score = score + n; }
-function clearScore() { setScore(0); }
-function clearRows() { setRows(0); }
-function setRows(n) { rows = n; step = Math.max(speed.min, speed.start - (speed.decrement * rows)); invalidateRows(); }
+function setRows(n) { rows = n; step = Math.max(speed.min, speed.start - (speed.decrement * rows)); needsRefresh.rows = true; }
 function addRows(n) { setRows(rows + n); }
 function getBlock(x, y) { return (blocks && blocks[x] ? blocks[x][y] : null); }
-function setBlock(x, y, type) { blocks[x] = blocks[x] || []; blocks[x][y] = type; invalidate(); }
-function clearBlocks() { blocks = []; invalidate(); }
+function setBlock(x, y, type) { blocks[x] = blocks[x] || []; blocks[x][y] = type; needsRefresh.court = true; }
+function clearBlocks() { blocks = []; needsRefresh.court = true; }
 function clearActions() { actions = []; }
-function setCurrentPiece(piece) { current = piece || randomPiece(); invalidate(); }
-function setNextPiece(piece) { next = piece || randomPiece(); invalidateNext(); }
+function setCurrentPiece(piece) { current = piece || randomPiece(); needsRefresh.court = true; }
+function setNextPiece(piece) { next = piece || randomPiece(); needsRefresh.next = true; }
 
 function reset() {
     dt = 0;
     clearActions();
     clearBlocks();
-    clearRows();
-    clearScore();
+    setRows(0);
+    setScore(0);
     setCurrentPiece(next);
     setNextPiece();
+    hold = null;
 }
 
 function update(idt) {
@@ -252,6 +262,7 @@ function handle(action) {
         case DIR.ROTATELEFT: rotateLeft(); break;
         case DIR.DOWN: drop(); break;
         case DIR.HARDDROP: hardDrop(); break;
+        case DIR.HOLD: holdPiece(); break;
     }
 }
 
@@ -265,7 +276,7 @@ function move(dir) {
     if (unoccupied(current.type, x, y, current.dir)) {
         current.x = x;
         current.y = y;
-        invalidate();
+        needsRefresh.court = true;
         return true;
     }
     else {
@@ -277,7 +288,7 @@ function rotateRight() {
     var newdir = (current.dir == DIR.MAX ? DIR.MIN : current.dir + 1);
     if (unoccupied(current.type, current.x, current.y, newdir)) {
         current.dir = newdir;
-        invalidate();
+        needsRefresh.court = true;
     }
 }
 
@@ -285,21 +296,13 @@ function rotateLeft() {
     var newdir = (current.dir == DIR.MIN ? DIR.MAX : current.dir - 1);
     if (unoccupied(current.type, current.x, current.y, newdir)) {
         current.dir = newdir;
-        invalidate();
+        needsRefresh.court = true;
     }
 }
 
 function drop() {
     if (!move(DIR.DOWN)) {
-        addScore(10);
-        dropPiece();
-        removeLines();
-        setCurrentPiece(next);
-        setNextPiece(randomPiece());
-        clearActions();
-        if (occupied(current.type, current.x, current.y, current.dir)) {
-            lose();
-        }
+        afterDrop();
     }
 }
 
@@ -307,16 +310,41 @@ function hardDrop() {
     while (move(DIR.DOWN)) {
         addScore(10);
     }
+    afterDrop();
+}
+
+function afterDrop() {
     addScore(10);
     dropPiece();
     removeLines();
     setCurrentPiece(next);
     setNextPiece(randomPiece());
     clearActions();
+    hasHeldPiece = false;
     if (occupied(current.type, current.x, current.y, current.dir)) {
         lose();
     }
-    invalidateRows();
+}
+
+function holdPiece() {
+    if (!hasHeldPiece) {
+        hasHeldPiece = true;
+        needsRefresh.hold = true;
+
+        if (hold == null) {
+            hold = current;
+            setCurrentPiece(next);
+            setNextPiece(randomPiece());
+        }
+        else {
+            var tempHold = hold;
+            hold = current;
+            current = tempHold;
+        }
+
+        hold.x = 4;
+        hold.y = 0;
+    }
 }
 
 function dropPiece() {
@@ -357,45 +385,40 @@ function removeLine(n) {
 // RENDERING
 //-------------------------------------------------------------------------
 
-var invalid = {};
-
-function invalidate() { invalid.court = true; }
-function invalidateNext() { invalid.next = true; }
-function invalidateScore() { invalid.score = true; }
-function invalidateRows() { invalid.rows = true; }
+var needsRefresh = {};
 
 function draw() {
     ctx.save();
     ctx.lineWidth = 1;
     ctx.translate(0.5, 0.5); // for crisp 1px black lines
     drawCourt();
-    drawNext();
-    drawScore();
     drawRows();
+    drawNext();
+    drawHold();
+    drawScore();
     ctx.restore();
 }
 
 function drawCourt() {
-    if (invalid.court) {
+    if (needsRefresh.court) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        if (playing)
+        if (playing) {
             drawPiece(ctx, current.type, current.x, current.y, current.dir);
+        }
         var x, y, block;
         for (y = 0; y < ny; y++) {
             for (x = 0; x < nx; x++) {
                 if (block = getBlock(x, y))
                     drawBlock(ctx, x, y, block.color);
-                else
-                    drawBlock(ctx, x, y, 'transparent')
             }
         }
         ctx.strokeRect(0, 0, nx * dx - 1, ny * dy - 1); // court boundary
-        invalid.court = false;
+        needsRefresh.court = false;
     }
 }
 
 function drawNext() {
-    if (invalid.next) {
+    if (needsRefresh.next) {
         var padding = (nu - next.type.size) / 2; // half-arsed attempt at centering next piece display
         uctx.save();
         uctx.translate(0.5, 0.5);
@@ -404,21 +427,37 @@ function drawNext() {
         uctx.strokeStyle = 'black';
         uctx.strokeRect(0, 0, nu * dx - 1, nu * dy - 1);
         uctx.restore();
-        invalid.next = false;
+        needsRefresh.next = false;
+    }
+}
+
+function drawHold() {
+    if (needsRefresh.hold) {
+        hctx.save();
+        hctx.translate(0.5, 0.5);
+        hctx.clearRect(0, 0, nu * dx - 1, nu * dy - 1);
+        if (hold != null) {
+            var padding = (nu - hold.type.size) / 2; // half-arsed attempt at centering next piece display
+            drawPiece(hctx, hold.type, padding, padding, hold.dir);
+        }
+        hctx.strokeStyle = 'black';
+        hctx.strokeRect(0, 0, nu * dx - 1, nu * dy - 1);
+        hctx.restore();
+        needsRefresh.hold = true;
     }
 }
 
 function drawScore() {
-    if (invalid.score) {
+    if (needsRefresh.score) {
         html('score', ("00000" + Math.floor(vscore)).slice(-5));
-        invalid.score = false;
+        needsRefresh.score = false;
     }
 }
 
 function drawRows() {
-    if (invalid.rows) {
+    if (needsRefresh.rows) {
         html('rows', rows);
-        invalid.rows = false;
+        needsRefresh.rows = false;
     }
 }
 

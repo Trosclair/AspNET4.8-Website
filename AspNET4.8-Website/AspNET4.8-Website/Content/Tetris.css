@@ -25,6 +25,10 @@
     background-color: #E0E0E0;
 }
 
+#hold {
+    background-color: #E0E0E0;
+}
+
 #score {
     color: red;
     font-weight: bold;
@@ -53,6 +57,11 @@
         height: 50px;
     }
 
+    #hold {
+        width: 50px;
+        height: 50px;
+    }
+
     #canvas {
         width: 100px;
         height: 200px;
@@ -71,6 +80,11 @@
     }
 
     #upcoming {
+        width: 75px;
+        height: 75px;
+    }
+
+    #hold {
         width: 75px;
         height: 75px;
     }
@@ -97,6 +111,11 @@
         height: 100px;
     }
 
+    #hold {
+        width: 100px;
+        height: 100px;
+    }
+
     #canvas {
         width: 200px;
         height: 400px;
@@ -119,13 +138,18 @@
         height: 125px;
     }
 
+    #hold {
+        width: 125px;
+        height: 125px;
+    }
+
     #canvas {
         width: 250px;
         height: 500px;
     }
 }
 /* 25px chunks */
-@@media screen and (min-width: 700px) and (min-height: 700px) {
+@media screen and (min-width: 700px) and (min-height: 700px) {
     #tetris {
         font-size: 1.75em;
         width: 650px;
@@ -137,6 +161,11 @@
     }
 
     #upcoming {
+        width: 150px;
+        height: 150px;
+    }
+
+    #hold {
         width: 150px;
         height: 150px;
     }
@@ -163,6 +192,11 @@
         height: 175px;
     }
 
+    #hold {
+        width: 175px;
+        height: 175px;
+    }
+
     #canvas {
         width: 350px;
         height: 700px;
@@ -181,6 +215,11 @@
     }
 
     #upcoming {
+        width: 200px;
+        height: 200px;
+    }
+
+    #hold {
         width: 200px;
         height: 200px;
     }
