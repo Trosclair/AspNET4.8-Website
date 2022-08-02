@@ -25,8 +25,26 @@ if (!window.requestAnimationFrame) { // http://paulirish.com/2011/requestanimati
 // game constants
 //-------------------------------------------------------------------------
 
-var KEY = { ESC: 27, SPACE: 32, LEFT: 37, UP: 38, RIGHT: 39, DOWN: 40 },
-    DIR = { UP: 0, RIGHT: 1, DOWN: 2, LEFT: 3, MIN: 0, MAX: 3 },
+var KEY = {
+    ESC: 27,
+    SPACE: 32,
+    ROTATERIGHT: 75,
+    ROTATELEFT: 74,
+    HARDDROP: 87,
+    LEFT: 65,
+    RIGHT: 68,
+    DOWN: 83
+},
+    DIR = {
+        RIGHT: 0,
+        DOWN: 1,
+        LEFT: 2,
+        ROTATERIGHT: 3,
+        ROTATELEFT: 4,
+        HARDDROP: 5,
+        MIN: 0,
+        MAX: 3
+    },
     canvas = get('canvas'),
     ctx = canvas.getContext('2d'),
     ucanvas = get('upcoming'),
@@ -116,9 +134,9 @@ function unoccupied(type, x, y, dir) {
 var pieces = [];
 function randomPiece() {
     if (pieces.length == 0)
-        pieces = [i, i, i, i, j, j, j, j, l, l, l, l, o, o, o, o, s, s, s, s, t, t, t, t, z, z, z, z];
+        pieces = [i, j, l, o, s, t, z];
     var type = pieces.splice(random(0, pieces.length - 1), 1)[0];
-    return { type: type, dir: DIR.UP, x: Math.round(random(0, nx - type.size)), y: 0 };
+    return { type: type, dir: DIR.ROTATERIGHT, x: 4, y: 0 };
 }
 
 
@@ -167,8 +185,10 @@ function keydown(ev) {
         switch (ev.keyCode) {
             case KEY.LEFT: actions.push(DIR.LEFT); handled = true; break;
             case KEY.RIGHT: actions.push(DIR.RIGHT); handled = true; break;
-            case KEY.UP: actions.push(DIR.UP); handled = true; break;
+            case KEY.ROTATERIGHT: actions.push(DIR.ROTATERIGHT); handled = true; break;
+            case KEY.ROTATELEFT: actions.push(DIR.ROTATELEFT); handled = true; break;
             case KEY.DOWN: actions.push(DIR.DOWN); handled = true; break;
+            case KEY.HARDDROP: actions.push(DIR.HARDDROP); handled = true; break;
             case KEY.ESC: lose(); handled = true; break;
         }
     }
@@ -228,8 +248,10 @@ function handle(action) {
     switch (action) {
         case DIR.LEFT: move(DIR.LEFT); break;
         case DIR.RIGHT: move(DIR.RIGHT); break;
-        case DIR.UP: rotate(); break;
+        case DIR.ROTATERIGHT: rotateRight(); break;
+        case DIR.ROTATELEFT: rotateLeft(); break;
         case DIR.DOWN: drop(); break;
+        case DIR.HARDDROP: hardDrop(); break;
     }
 }
 
@@ -251,8 +273,16 @@ function move(dir) {
     }
 }
 
-function rotate() {
+function rotateRight() {
     var newdir = (current.dir == DIR.MAX ? DIR.MIN : current.dir + 1);
+    if (unoccupied(current.type, current.x, current.y, newdir)) {
+        current.dir = newdir;
+        invalidate();
+    }
+}
+
+function rotateLeft() {
+    var newdir = (current.dir == DIR.MIN ? DIR.MAX : current.dir - 1);
     if (unoccupied(current.type, current.x, current.y, newdir)) {
         current.dir = newdir;
         invalidate();
@@ -271,6 +301,22 @@ function drop() {
             lose();
         }
     }
+}
+
+function hardDrop() {
+    while (move(DIR.DOWN)) {
+        addScore(10);
+    }
+    addScore(10);
+    dropPiece();
+    removeLines();
+    setCurrentPiece(next);
+    setNextPiece(randomPiece());
+    clearActions();
+    if (occupied(current.type, current.x, current.y, current.dir)) {
+        lose();
+    }
+    invalidateRows();
 }
 
 function dropPiece() {
@@ -339,6 +385,8 @@ function drawCourt() {
             for (x = 0; x < nx; x++) {
                 if (block = getBlock(x, y))
                     drawBlock(ctx, x, y, block.color);
+                else
+                    drawBlock(ctx, x, y, 'transparent')
             }
         }
         ctx.strokeRect(0, 0, nx * dx - 1, ny * dy - 1); // court boundary
@@ -383,6 +431,7 @@ function drawPiece(ctx, type, x, y, dir) {
 function drawBlock(ctx, x, y, color) {
     ctx.fillStyle = color;
     ctx.fillRect(x * dx, y * dy, dx, dy);
+    ctx.strokeStyle = 'black';
     ctx.strokeRect(x * dx, y * dy, dx, dy)
 }
 
