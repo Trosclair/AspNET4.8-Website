@@ -3,8 +3,8 @@
 //-------------------------------------------------------------------------
 
 function get(id) { return document.getElementById(id); }
-function hide(id) { get(id).style.visibility = 'hidden'; }
-function show(id) { get(id).style.visibility = null; }
+function hide(id) { get(id).style.visibility = 'collapse'; }
+function show(id) { get(id).style.visibility = 'visible'; }
 function html(id, html) { get(id).innerHTML = html; }
 
 function timestamp() { return new Date().getTime(); }
@@ -36,34 +36,34 @@ var KEY = {
     RIGHT: 68,
     DOWN: 83
 },
-DIR = {
-    RIGHT: 0,
-    DOWN: 1,
-    LEFT: 2,
-    ROTATERIGHT: 3,
-    ROTATELEFT: 4,
-    HARDDROP: 5,
-    HOLD: 6,
-    MIN: 0,
-    MAX: 3
-},
-    canvas = get('canvas'),
-    ctx = canvas.getContext('2d'),
-    ucanvas = get('upcoming'),
-    uctx = ucanvas.getContext('2d'),
-    hcanvas = get('hold'),
-    hctx = hcanvas.getContext('2d'),
+    DIR = {
+        RIGHT: 0,
+        DOWN: 1,
+        LEFT: 2,
+        ROTATERIGHT: 3,
+        ROTATELEFT: 4,
+        HARDDROP: 5,
+        HOLD: 6,
+        MIN: 0,
+        MAX: 3
+    },
+    boardCanvas = get('canvas'),
+    ctx = boardCanvas.getContext('2d'),
+    upcomingCanvas = get('upcoming'),
+    uctx = upcomingCanvas.getContext('2d'),
+    holdCanvas = get('hold'),
+    hctx = holdCanvas.getContext('2d'),
     speed = { start: 0.6, decrement: 0.005, min: 0.1 }, // how long before piece drops by 1 row (seconds)
-    nx = 10, // width of tetris court (in blocks)
-    ny = 20, // height of tetris court (in blocks)
-    nu = 5;  // width/height of upcoming preview (in blocks)
-
+    widthOfBoard = 10, // width of tetris court (in blocks)
+    heightOfBoard = 20, // height of tetris court (in blocks)
+    widthHeightOfPreviewAndHold = 5,  // width/height of upcoming preview (in blocks)
+    numberOfRotationsOnEachPiece = 4;
 //-------------------------------------------------------------------------
 // game variables (initialized during reset)
 //-------------------------------------------------------------------------
 
-var dx, dy,        // pixel size of a single tetris block
-    blocks,        // 2 dimensional array (nx*ny) representing tetris court - either empty block or occupied by a 'piece'
+var blockPixelSizeX, blockPixelSizeY,        // pixel size of a single tetris block
+    blocks,        // 2 dimensional array (widthOfBoard*heightOfBoard) representing tetris court - either empty block or occupied by a 'piece'
     actions,       // queue of user actions (inputs)
     playing,       // true|false - game is in progress
     dt,            // time since starting this game
@@ -83,9 +83,9 @@ var dx, dy,        // pixel size of a single tetris block
 //         each element is a 16 bit integer where the 16 bits represent
 //         a 4x4 set of blocks, e.g. j.blocks[0] = 0x44C0
 //
-//             0100 = 0x4 << 3 = 0x4000
-//             0100 = 0x4 << 2 = 0x0400
-//             1100 = 0xC << 1 = 0x00C0
+//             0100 = 0x4 << 12 =0x4000
+//             0100 = 0x4 << 8 = 0x0400
+//             1100 = 0xC << 4 = 0x00C0
 //             0000 = 0x0 << 0 = 0x0000
 //                               ------
 //                               0x44C0
@@ -95,7 +95,7 @@ var dx, dy,        // pixel size of a single tetris block
 var i = { size: 4, blocks: [0x00F0, 0x2222, 0x00F0, 0x2222], color: 'cyan' };
 var j = { size: 3, blocks: [0x44C0, 0x8E00, 0x6440, 0x0E20], color: 'blue' };
 var l = { size: 3, blocks: [0x4460, 0x0E80, 0xC440, 0x2E00], color: 'orange' };
-var o = { size: 2, blocks: [0xCC00, 0xCC00, 0xCC00, 0xCC00], color: 'yellow' };
+var u = { size: 2, blocks: [0xCC00, 0xCC00, 0xCC00, 0xCC00], color: 'yellow' };
 var s = { size: 3, blocks: [0x06C0, 0x4620, 0x06C0, 0x4620], color: 'green' };
 var t = { size: 3, blocks: [0x0E40, 0x4C40, 0x4E00, 0x4640], color: 'purple' };
 var z = { size: 3, blocks: [0x0C60, 0x2640, 0x0C60, 0x2640], color: 'red' };
@@ -123,14 +123,10 @@ function eachblock(type, x, y, dir, fn) {
 function occupied(type, x, y, dir) {
     var result = false
     eachblock(type, x, y, dir, function (x, y) {
-        if ((x < 0) || (x >= nx) || (y < 0) || (y >= ny) || getBlock(x, y))
+        if ((x < 0) || (x >= widthOfBoard) || (y < 0) || (y >= heightOfBoard) || getBlock(x, y))
             result = true;
     });
     return result;
-}
-
-function unoccupied(type, x, y, dir) {
-    return !occupied(type, x, y, dir);
 }
 
 //-----------------------------------------
@@ -140,7 +136,7 @@ function unoccupied(type, x, y, dir) {
 var pieces = [];
 function randomPiece() {
     if (pieces.length == 0)
-        pieces = [i, j, l, o, s, t, z];
+        pieces = [i, j, l, u, s, t, z];
     var type = pieces.splice(random(0, pieces.length - 1), 1)[0];
     return { type: type, dir: DIR.ROTATERIGHT, x: 4, y: 0 };
 }
@@ -160,7 +156,7 @@ function run() {
         update(Math.min(1, (now - last) / 1000.0)); // using requestAnimationFrame have to be able to handle large delta's caused when it 'hibernates' in a background or non-visible tab
         draw();
         last = now;
-        requestAnimationFrame(frame, canvas);
+        requestAnimationFrame(frame, boardCanvas);
     }
 
     resize(); // setup all our sizing information
@@ -175,14 +171,14 @@ function addEvents() {
 }
 
 function resize(event) {
-    canvas.width = canvas.clientWidth;  // set canvas logical size equal to its physical size
-    canvas.height = canvas.clientHeight; // (ditto)
-    ucanvas.width = ucanvas.clientWidth;
-    ucanvas.height = ucanvas.clientHeight;
-    hcanvas.width = hcanvas.clientWidth;
-    hcanvas.height = hcanvas.clientHeight;
-    dx = canvas.width / nx; // pixel size of a single tetris block
-    dy = canvas.height / ny; // (ditto)
+    boardCanvas.width = boardCanvas.clientWidth;  // set boardCanvas logical size equal to its physical size
+    boardCanvas.height = boardCanvas.clientHeight; // (ditto)
+    upcomingCanvas.width = upcomingCanvas.clientWidth;
+    upcomingCanvas.height = upcomingCanvas.clientHeight;
+    holdCanvas.width = holdCanvas.clientWidth;
+    holdCanvas.height = holdCanvas.clientHeight;
+    blockPixelSizeX = boardCanvas.width / widthOfBoard; // pixel size of a single tetris block
+    blockPixelSizeY = boardCanvas.height / heightOfBoard; // (ditto)
     needsRefresh.court = true;
     needsRefresh.next = true;
     needsRefresh.hold = true;
@@ -273,7 +269,7 @@ function move(dir) {
         case DIR.LEFT: x = x - 1; break;
         case DIR.DOWN: y = y + 1; break;
     }
-    if (unoccupied(current.type, x, y, current.dir)) {
+    if (!occupied(current.type, x, y, current.dir)) {
         current.x = x;
         current.y = y;
         needsRefresh.court = true;
@@ -285,16 +281,16 @@ function move(dir) {
 }
 
 function rotateRight() {
-    var newdir = (current.dir == DIR.MAX ? DIR.MIN : current.dir + 1);
-    if (unoccupied(current.type, current.x, current.y, newdir)) {
+    var newdir = (current.dir + 1) % numberOfRotationsOnEachPiece;
+    if (!occupied(current.type, current.x, current.y, newdir)) {
         current.dir = newdir;
         needsRefresh.court = true;
     }
 }
 
 function rotateLeft() {
-    var newdir = (current.dir == DIR.MIN ? DIR.MAX : current.dir - 1);
-    if (unoccupied(current.type, current.x, current.y, newdir)) {
+    var newdir = (current.dir + 3) % numberOfRotationsOnEachPiece;
+    if (!occupied(current.type, current.x, current.y, newdir)) {
         current.dir = newdir;
         needsRefresh.court = true;
     }
@@ -344,6 +340,7 @@ function holdPiece() {
 
         hold.x = 4;
         hold.y = 0;
+        needsRefresh.court = true;
     }
 }
 
@@ -355,9 +352,9 @@ function dropPiece() {
 
 function removeLines() {
     var x, y, complete, n = 0;
-    for (y = ny; y > 0; --y) {
+    for (y = heightOfBoard; y > 0; --y) {
         complete = true;
-        for (x = 0; x < nx; ++x) {
+        for (x = 0; x < widthOfBoard; ++x) {
             if (!getBlock(x, y))
                 complete = false;
         }
@@ -376,7 +373,7 @@ function removeLines() {
 function removeLine(n) {
     var x, y;
     for (y = n; y >= 0; --y) {
-        for (x = 0; x < nx; ++x)
+        for (x = 0; x < widthOfBoard; ++x)
             setBlock(x, y, (y == 0) ? null : getBlock(x, y - 1));
     }
 }
@@ -401,31 +398,31 @@ function draw() {
 
 function drawCourt() {
     if (needsRefresh.court) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, boardCanvas.width, boardCanvas.height);
         if (playing) {
             drawPiece(ctx, current.type, current.x, current.y, current.dir);
         }
         var x, y, block;
-        for (y = 0; y < ny; y++) {
-            for (x = 0; x < nx; x++) {
+        for (y = 0; y < heightOfBoard; y++) {
+            for (x = 0; x < widthOfBoard; x++) {
                 if (block = getBlock(x, y))
                     drawBlock(ctx, x, y, block.color);
             }
         }
-        ctx.strokeRect(0, 0, nx * dx - 1, ny * dy - 1); // court boundary
+        ctx.strokeRect(0, 0, widthOfBoard * blockPixelSizeX - 1, heightOfBoard * blockPixelSizeY - 1); // court boundary
         needsRefresh.court = false;
     }
 }
 
 function drawNext() {
     if (needsRefresh.next) {
-        var padding = (nu - next.type.size) / 2; // half-arsed attempt at centering next piece display
+        var padding = (widthHeightOfPreviewAndHold - next.type.size) / 2; // half-arsed attempt at centering next piece display
         uctx.save();
         uctx.translate(0.5, 0.5);
-        uctx.clearRect(0, 0, nu * dx, nu * dy);
+        uctx.clearRect(0, 0, widthHeightOfPreviewAndHold * blockPixelSizeX, widthHeightOfPreviewAndHold * blockPixelSizeY);
         drawPiece(uctx, next.type, padding, padding, next.dir);
         uctx.strokeStyle = 'black';
-        uctx.strokeRect(0, 0, nu * dx - 1, nu * dy - 1);
+        uctx.strokeRect(0, 0, widthHeightOfPreviewAndHold * blockPixelSizeX - 1, widthHeightOfPreviewAndHold * blockPixelSizeY - 1);
         uctx.restore();
         needsRefresh.next = false;
     }
@@ -435,13 +432,13 @@ function drawHold() {
     if (needsRefresh.hold) {
         hctx.save();
         hctx.translate(0.5, 0.5);
-        hctx.clearRect(0, 0, nu * dx - 1, nu * dy - 1);
+        hctx.clearRect(0, 0, widthHeightOfPreviewAndHold * blockPixelSizeX - 1, widthHeightOfPreviewAndHold * blockPixelSizeY - 1);
         if (hold != null) {
-            var padding = (nu - hold.type.size) / 2; // half-arsed attempt at centering next piece display
+            var padding = (widthHeightOfPreviewAndHold - hold.type.size) / 2; // half-arsed attempt at centering next piece display
             drawPiece(hctx, hold.type, padding, padding, hold.dir);
         }
         hctx.strokeStyle = 'black';
-        hctx.strokeRect(0, 0, nu * dx - 1, nu * dy - 1);
+        hctx.strokeRect(0, 0, widthHeightOfPreviewAndHold * blockPixelSizeX - 1, widthHeightOfPreviewAndHold * blockPixelSizeY - 1);
         hctx.restore();
         needsRefresh.hold = true;
     }
@@ -469,9 +466,9 @@ function drawPiece(ctx, type, x, y, dir) {
 
 function drawBlock(ctx, x, y, color) {
     ctx.fillStyle = color;
-    ctx.fillRect(x * dx, y * dy, dx, dy);
+    ctx.fillRect(x * blockPixelSizeX, y * blockPixelSizeY, blockPixelSizeX, blockPixelSizeY);
     ctx.strokeStyle = 'black';
-    ctx.strokeRect(x * dx, y * dy, dx, dy)
+    ctx.strokeRect(x * blockPixelSizeX, y * blockPixelSizeY, blockPixelSizeX, blockPixelSizeY)
 }
 
 //-------------------------------------------------------------------------
