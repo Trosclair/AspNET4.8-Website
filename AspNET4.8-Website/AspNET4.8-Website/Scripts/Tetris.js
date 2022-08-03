@@ -68,6 +68,7 @@ var blockPixelSizeX, blockPixelSizeY,        // pixel size of a single tetris bl
     playing,       // true|false - game is in progress
     dt,            // time since starting this game
     current,       // the current piece
+    shadow,        // piece shadow
     next,          // the next piece
     hold,          // held piece
     score,         // the current score
@@ -280,6 +281,13 @@ function move(dir) {
     }
 }
 
+function dropShadow() {
+    var y = current.y;
+    while (!occupied(current.type, current.x, y, current.dir))
+        y = y + 1;
+    return y - 1;
+}
+
 function rotateRight() {
     var newdir = (current.dir + 1) % numberOfRotationsOnEachPiece;
     if (!occupied(current.type, current.x, current.y, newdir)) {
@@ -400,7 +408,8 @@ function drawCourt() {
     if (needsRefresh.court) {
         ctx.clearRect(0, 0, boardCanvas.width, boardCanvas.height);
         if (playing) {
-            drawPiece(ctx, current.type, current.x, current.y, current.dir);
+            drawPiece(ctx, current.type, current.dir, current.x, dropShadow(), 'gray');             // Draw the Shadow
+            drawPiece(ctx, current.type, current.dir, current.x, current.y, current.type.color);
         }
         var x, y, block;
         for (y = 0; y < heightOfBoard; y++) {
@@ -420,7 +429,7 @@ function drawNext() {
         uctx.save();
         uctx.translate(0.5, 0.5);
         uctx.clearRect(0, 0, widthHeightOfPreviewAndHold * blockPixelSizeX, widthHeightOfPreviewAndHold * blockPixelSizeY);
-        drawPiece(uctx, next.type, padding, padding, next.dir);
+        drawPiece(uctx, next.type, next.dir, padding, padding, next.type.color);
         uctx.strokeStyle = 'black';
         uctx.strokeRect(0, 0, widthHeightOfPreviewAndHold * blockPixelSizeX - 1, widthHeightOfPreviewAndHold * blockPixelSizeY - 1);
         uctx.restore();
@@ -435,7 +444,7 @@ function drawHold() {
         hctx.clearRect(0, 0, widthHeightOfPreviewAndHold * blockPixelSizeX - 1, widthHeightOfPreviewAndHold * blockPixelSizeY - 1);
         if (hold != null) {
             var padding = (widthHeightOfPreviewAndHold - hold.type.size) / 2; // half-arsed attempt at centering next piece display
-            drawPiece(hctx, hold.type, padding, padding, hold.dir);
+            drawPiece(hctx, hold.type, hold.dir, padding, padding, hold.type.color);
         }
         hctx.strokeStyle = 'black';
         hctx.strokeRect(0, 0, widthHeightOfPreviewAndHold * blockPixelSizeX - 1, widthHeightOfPreviewAndHold * blockPixelSizeY - 1);
@@ -458,9 +467,9 @@ function drawRows() {
     }
 }
 
-function drawPiece(ctx, type, x, y, dir) {
+function drawPiece(ctx, type, dir, x, y, color) {
     eachblock(type, x, y, dir, function (x, y) {
-        drawBlock(ctx, x, y, type.color);
+        drawBlock(ctx, x, y, color);
     });
 }
 
