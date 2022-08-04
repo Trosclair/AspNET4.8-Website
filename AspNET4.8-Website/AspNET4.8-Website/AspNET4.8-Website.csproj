@@ -124,11 +124,13 @@
     <Compile Include="Controllers\GameController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\MusicController.cs" />
+    <Compile Include="Controllers\ProjectsController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\Album.cs" />
     <Compile Include="Models\Gear.cs" />
+    <Compile Include="Models\Project.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -142,6 +144,8 @@
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
+    <Content Include="Images\Me\Professional.png" />
+    <Content Include="Images\Me\Rockstar.jpeg" />
     <Content Include="Images\Music\Albums\Pitch Black Progress.jpg" />
     <Content Include="Images\Music\Albums\Days of Future Past.jpg" />
     <Content Include="Images\Music\Albums\The Singularity.jpg" />
@@ -162,8 +166,10 @@
     <Content Include="Images\Music\Gear\helix.jpg" />
     <Content Include="Images\Music\Gear\jbl speaker.jpg" />
     <Content Include="Images\Music\Gear\ToxicSmokeGreen.jpg" />
+    <Content Include="Images\Projects\ConsoleTetris.PNG" />
     <Content Include="Images\Sidebar Icons\controller.png" />
     <Content Include="Images\Sidebar Icons\guitar.png" />
+    <Content Include="Images\Sidebar Icons\Project.png" />
     <Content Include="postcss.config.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
@@ -200,6 +206,7 @@
     <Content Include="Views\Music\SelectedSounds.cshtml" />
     <Content Include="Views\Music\Gear.cshtml" />
     <Content Include="Views\Game\Tetris.cshtml" />
+    <Content Include="Views\Projects\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

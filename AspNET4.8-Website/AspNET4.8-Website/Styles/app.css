@@ -19,6 +19,14 @@
         @apply absolute w-auto p-4 m-4 min-w-max top-92 rounded-md shadow-md text-white bg-gray-900 text-2xl transition-all duration-100 scale-0 origin-left;
     }
 
+    .me-icon {
+        @apply relative flex items-start justify-start h-144 w-144 mt-24 mb-24 mx-auto hover:text-white rounded-36xl transition-all duration-300 cursor-pointer ease-linear;
+    }
+    
+    .me-tooltip {
+        @apply absolute w-auto p-4 m-4 min-w-max top-96 rounded-md shadow-md text-white bg-gray-900 text-2xl transition-all duration-100 scale-0 origin-left;
+    }
+
     .gear-container {
         @apply flex items-start h-96 w-auto rounded-xl hover:shadow-2xl;
     }
@@ -35,7 +43,23 @@
         border-radius: 12rem;
     }
 
+    .rounded-36xl {
+        border-radius: 18rem;
+    }
+
     .top-92 {
         top: 23rem;
+    }
+
+    .top-140 {
+        top: 35rem;
+    }
+
+    .h-144 {
+        height: 36rem;
+    }
+
+    .w-144 {
+        width: 36rem;
     }
 }
