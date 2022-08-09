@@ -14,13 +14,14 @@ enum Direction {
 export class GameState {
     public Board: Piece[][];
     public CurrentPiece: Piece;
-    public HoldPiece: Piece;
+    public HeldPiece: Piece;
     public NextPiece: Piece;
     public Score: number;
-    public ClearedLines: number;
     public IsPlaying: boolean;
-    public Actions: Direction[];
     public HasHeldPiece: boolean;
+    public Level: number;
+    public DropTimeStep: number;
+    private ClearedLines: number;
 
     constructor() {
         this.Reset();
@@ -34,16 +35,147 @@ export class GameState {
         this.IsPlaying = false;
     }
 
+    public SetClearedLines(numberOfClearedLines: number) {
+        this.ClearedLines += numberOfClearedLines;
+        this.Level = (this.ClearedLines / 10) | 0;
+
+        this.DropTimeStep = Math.max(0.1, 0.6 - (.050 * this.Level));
+    }
+
+    public GetLinesCleared(): number {
+        return this.ClearedLines;
+    }
+
+    public HoldPiece() {
+        if (!this.HasHeldPiece) {
+            this.HasHeldPiece = true;
+
+            if (this.HeldPiece == null) {
+                this.HeldPiece = this.CurrentPiece;
+                this.CurrentPiece = this.NextPiece;
+                this.NextPiece = Piece.GetRandomPiece();
+            }
+            else {
+                const tempHold = this.HeldPiece;
+                this.HeldPiece = this.CurrentPiece;
+                this.CurrentPiece = tempHold;
+            }
+
+            this.HeldPiece.X = 4;
+            this.HeldPiece.Y = 0;
+        }
+    }
+
+
+    private HasCollided(x: number, y: number, currentRotation: number): boolean {
+        let result: boolean = false;
+        const fn = function (x: number, y: number) {
+            if (x < 0 || x >= WidthOfBoard || y < 0 || y >= HeightOfBoard || this.Board[x][y] == null)
+                result = true;
+        }
+        GameState.ApplyFunctionToEachBlockInAPiece(this.CurrentPiece, x, y, currentRotation, fn);
+        return result;
+    }
+
+    public MoveRight(): boolean {
+        return this.Move(this.CurrentPiece.X + 1, this.CurrentPiece.Y);
+    }
+
+    public MoveLeft(): boolean {
+        return this.Move(this.CurrentPiece.X - 1, this.CurrentPiece.Y);
+    }
+
+    public MoveDown(): boolean {
+        return this.Move(this.CurrentPiece.X, this.CurrentPiece.Y - 1);
+    }
+
+    public RotateClockwise() {
+        let newRotation: number = (this.CurrentPiece.CurrentRotation + 1) % this.CurrentPiece.Rotation.length;
+        if (!this.HasCollided(this.CurrentPiece.X, this.CurrentPiece.Y, newRotation))
+            this.CurrentPiece.CurrentRotation = newRotation;
+    }
+
+    public RotateCounterClockwise() {
+        let newRotation: number = (this.CurrentPiece.CurrentRotation + 3) % this.CurrentPiece.Rotation.length;
+        if (!this.HasCollided(this.CurrentPiece.X, this.CurrentPiece.Y, newRotation))
+            this.CurrentPiece.CurrentRotation = newRotation;
+    }
+
+    public Drop(isHoldingDown: boolean) {
+        if (isHoldingDown)
+            this.Score += 10;
+
+        if (!this.MoveDown())
+            this.AfterDrop();
+    }
+
+    public HardDrop() {
+        while (this.MoveDown)
+            this.Score += 10;
+        this.Score += 10;
+        this.AfterDrop();
+    }
+
+    private AfterDrop() {
+        this.CommitPieceToBoard();
+        this.RemoveLines();
+        this.CurrentPiece = this.NextPiece;
+        this.NextPiece = Piece.GetRandomPiece();
+        this.HasHeldPiece = false;
+        if (this.HasCollided(this.CurrentPiece.X, this.CurrentPiece.Y, this.CurrentPiece.CurrentRotation))
+            this.Lose();
+    }
+
+    private RemoveLines() {
+        let n: number = 0;
+        for (let y: number = HeightOfBoard; y > 0; --y) {
+            let isLineComplete: boolean = true;
+            for (let x: number = 0; x < WidthOfBoard; x++)
+                if (this.Board[x][y] == null)
+                    isLineComplete = false;
+            if (isLineComplete) {
+                this.RemoveLine(y);
+                y++
+                n++;
+            }
+        }
+        if (n > 0) {
+            this.SetClearedLines(n);
+            this.Score += Math.pow(2, n - 1) * 100;
+        }
+    }
+
+    private RemoveLine(n: number) {
+        for (let y: number = n; y >= 0; --y)
+            for (let x: number = 0; x < WidthOfBoard; x++)
+                this.Board[x][y] = (y == 0) ? null : this.Board[x][y - 1];
+    }
+
+    private CommitPieceToBoard() {
+        const fn = function (x: number, y: number) { this.Board[x][y] = this.CurrentPiece; }
+        GameState.ApplyFunctionToEachBlockInAPiece(this.CurrentPiece, this.CurrentPiece.X, this.CurrentPiece.Y, this.CurrentPiece.CurrentRotation, fn)
+    }
+
+    private Move(x: number, y: number): boolean {
+        if (!this.HasCollided(x, y, this.CurrentPiece.CurrentRotation)) {
+            this.CurrentPiece.X = x;
+            this.CurrentPiece.Y = y;
+            return true;
+        }
+        return false;
+    }
+
     private Reset() {
         this.Board = new Piece[WidthOfBoard][HeightOfBoard];
         this.CurrentPiece = Piece.GetRandomPiece();
         this.NextPiece = Piece.GetRandomPiece();
-        this.HoldPiece = null;
+        this.HeldPiece = null;
         this.Score = 0;
         this.ClearedLines = 0;
         this.IsPlaying = false;
-        this.Actions = [];
         this.HasHeldPiece = false;
+        this.Level = 0;
+        this.DropTimeStep = 0.6;
     }
 
     public static ApplyFunctionToEachBlockInAPiece(piece: Piece, x: number, y: number, currentRotation: number, fn: (x: number, y: number) => void) {
@@ -92,106 +224,6 @@ abstract class Piece {
                 return new I();
         }
     }
-
-    private HasCollided(gameState: GameState, x: number, y: number, currentRotation: number): boolean {
-        let result: boolean = false;
-        const fn = function (x: number, y: number) {
-            if (x < 0 || x >= WidthOfBoard || y < 0 || y >= HeightOfBoard || gameState.Board[x][y] == null)
-                result = true;
-        }
-        GameState.ApplyFunctionToEachBlockInAPiece(gameState.CurrentPiece, x, y, currentRotation, fn);
-        return result;
-    }
-
-    public MoveRight(gameState: GameState): boolean {
-        return this.Move(gameState, this.X + 1, this.Y);
-    }
-
-    public MoveLeft(gameState: GameState): boolean {
-        return this.Move(gameState, this.X - 1, this.Y);
-    }
-
-    public MoveDown(gameState: GameState): boolean {
-        return this.Move(gameState, this.X, this.Y - 1);
-    }
-
-    public RotateClockwise(gameState: GameState) {
-        let newRotation: number = (gameState.CurrentPiece.CurrentRotation + 1) % gameState.CurrentPiece.Rotation.length;
-        if (!this.HasCollided(gameState, gameState.CurrentPiece.X, gameState.CurrentPiece.Y, newRotation))
-            gameState.CurrentPiece.CurrentRotation = newRotation;
-    }
-
-    public RotateCounterClockwise(gameState: GameState) {
-        let newRotation: number = (gameState.CurrentPiece.CurrentRotation + 3) % gameState.CurrentPiece.Rotation.length;
-        if (!this.HasCollided(gameState, gameState.CurrentPiece.X, gameState.CurrentPiece.Y, newRotation))
-            gameState.CurrentPiece.CurrentRotation = newRotation;
-    }
-
-    public Drop(gameState: GameState, isHoldingDown: boolean) {
-        if (isHoldingDown)
-            gameState.Score += 10;
-
-        if (!this.MoveDown(gameState))
-            this.AfterDrop(gameState);
-    }
-
-    public HardDrop(gameState: GameState) {
-        while (this.MoveDown)
-            gameState.Score += 10;
-        gameState.Score += 10;
-        this.AfterDrop(gameState);
-    }
-
-    private AfterDrop(gameState: GameState) {
-        this.CommitPieceToBoard(gameState);
-        this.RemoveLines(gameState);
-        gameState.CurrentPiece = gameState.NextPiece;
-        gameState.NextPiece = Piece.GetRandomPiece();
-        gameState.Actions = [];
-        gameState.HasHeldPiece = false;
-        if (this.HasCollided(gameState, gameState.CurrentPiece.X, gameState.CurrentPiece.Y, gameState.CurrentPiece.CurrentRotation))
-            gameState.Lose();
-    }
-
-    private RemoveLines(gameState: GameState) {
-        let n: number = 0;
-        for (let y: number = HeightOfBoard; y > 0; --y) {
-            let isLineComplete: boolean = true;
-            for (let x: number = 0; x < WidthOfBoard; x++)
-                if (gameState.Board[x][y] == null)
-                    isLineComplete = false;
-            if (isLineComplete) {
-                this.RemoveLine(gameState, y);
-                y++
-                n++;
-            }
-        }
-        if (n > 0) {
-            gameState.ClearedLines += n;
-            gameState.Score += Math.pow(2, n - 1) * 100;
-        }
-    }
-
-    private RemoveLine(gameState: GameState, n: number) {
-        for (let y: number = n; y >= 0; --y)
-            for (let x: number = 0; x < WidthOfBoard; x++)
-                gameState.Board[x][y] = (y == 0) ? null : gameState.Board[x][y - 1];
-    }
-
-    private CommitPieceToBoard(gameState: GameState) {
-        const fn = function (x: number, y: number) { gameState.Board[x][y] = gameState.CurrentPiece; }
-        GameState.ApplyFunctionToEachBlockInAPiece(gameState.CurrentPiece, gameState.CurrentPiece.X, gameState.CurrentPiece.Y, gameState.CurrentPiece.CurrentRotation, fn)
-    }
-
-    private Move(gameState: GameState, x: number, y: number): boolean {
-        if (!this.HasCollided(gameState, x, y, gameState.CurrentPiece.CurrentRotation)) {
-            gameState.CurrentPiece.X = x;
-            gameState.CurrentPiece.Y = y;
-            return true;
-        }
-        return false;
-    }
-
 }
 
 class I extends Piece {

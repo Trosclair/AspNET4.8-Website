@@ -13,13 +13,14 @@ var Direction;
 export class GameState {
     Board;
     CurrentPiece;
-    HoldPiece;
+    HeldPiece;
     NextPiece;
     Score;
-    ClearedLines;
     IsPlaying;
-    Actions;
     HasHeldPiece;
+    Level;
+    DropTimeStep;
+    ClearedLines;
     constructor() {
         this.Reset();
     }
@@ -29,16 +30,126 @@ export class GameState {
     Lose() {
         this.IsPlaying = false;
     }
+    SetClearedLines(numberOfClearedLines) {
+        this.ClearedLines += numberOfClearedLines;
+        this.Level = (this.ClearedLines / 10) | 0;
+        this.DropTimeStep = Math.max(0.1, 0.6 - (.050 * this.Level));
+    }
+    GetLinesCleared() {
+        return this.ClearedLines;
+    }
+    HoldPiece() {
+        if (!this.HasHeldPiece) {
+            this.HasHeldPiece = true;
+            if (this.HeldPiece == null) {
+                this.HeldPiece = this.CurrentPiece;
+                this.CurrentPiece = this.NextPiece;
+                this.NextPiece = Piece.GetRandomPiece();
+            }
+            else {
+                const tempHold = this.HeldPiece;
+                this.HeldPiece = this.CurrentPiece;
+                this.CurrentPiece = tempHold;
+            }
+            this.HeldPiece.X = 4;
+            this.HeldPiece.Y = 0;
+        }
+    }
+    HasCollided(x, y, currentRotation) {
+        let result = false;
+        const fn = function (x, y) {
+            if (x < 0 || x >= WidthOfBoard || y < 0 || y >= HeightOfBoard || this.Board[x][y] == null)
+                result = true;
+        };
+        GameState.ApplyFunctionToEachBlockInAPiece(this.CurrentPiece, x, y, currentRotation, fn);
+        return result;
+    }
+    MoveRight() {
+        return this.Move(this.CurrentPiece.X + 1, this.CurrentPiece.Y);
+    }
+    MoveLeft() {
+        return this.Move(this.CurrentPiece.X - 1, this.CurrentPiece.Y);
+    }
+    MoveDown() {
+        return this.Move(this.CurrentPiece.X, this.CurrentPiece.Y - 1);
+    }
+    RotateClockwise() {
+        let newRotation = (this.CurrentPiece.CurrentRotation + 1) % this.CurrentPiece.Rotation.length;
+        if (!this.HasCollided(this.CurrentPiece.X, this.CurrentPiece.Y, newRotation))
+            this.CurrentPiece.CurrentRotation = newRotation;
+    }
+    RotateCounterClockwise() {
+        let newRotation = (this.CurrentPiece.CurrentRotation + 3) % this.CurrentPiece.Rotation.length;
+        if (!this.HasCollided(this.CurrentPiece.X, this.CurrentPiece.Y, newRotation))
+            this.CurrentPiece.CurrentRotation = newRotation;
+    }
+    Drop(isHoldingDown) {
+        if (isHoldingDown)
+            this.Score += 10;
+        if (!this.MoveDown())
+            this.AfterDrop();
+    }
+    HardDrop() {
+        while (this.MoveDown)
+            this.Score += 10;
+        this.Score += 10;
+        this.AfterDrop();
+    }
+    AfterDrop() {
+        this.CommitPieceToBoard();
+        this.RemoveLines();
+        this.CurrentPiece = this.NextPiece;
+        this.NextPiece = Piece.GetRandomPiece();
+        this.HasHeldPiece = false;
+        if (this.HasCollided(this.CurrentPiece.X, this.CurrentPiece.Y, this.CurrentPiece.CurrentRotation))
+            this.Lose();
+    }
+    RemoveLines() {
+        let n = 0;
+        for (let y = HeightOfBoard; y > 0; --y) {
+            let isLineComplete = true;
+            for (let x = 0; x < WidthOfBoard; x++)
+                if (this.Board[x][y] == null)
+                    isLineComplete = false;
+            if (isLineComplete) {
+                this.RemoveLine(y);
+                y++;
+                n++;
+            }
+        }
+        if (n > 0) {
+            this.SetClearedLines(n);
+            this.Score += Math.pow(2, n - 1) * 100;
+        }
+    }
+    RemoveLine(n) {
+        for (let y = n; y >= 0; --y)
+            for (let x = 0; x < WidthOfBoard; x++)
+                this.Board[x][y] = (y == 0) ? null : this.Board[x][y - 1];
+    }
+    CommitPieceToBoard() {
+        const fn = function (x, y) { this.Board[x][y] = this.CurrentPiece; };
+        GameState.ApplyFunctionToEachBlockInAPiece(this.CurrentPiece, this.CurrentPiece.X, this.CurrentPiece.Y, this.CurrentPiece.CurrentRotation, fn);
+    }
+    Move(x, y) {
+        if (!this.HasCollided(x, y, this.CurrentPiece.CurrentRotation)) {
+            this.CurrentPiece.X = x;
+            this.CurrentPiece.Y = y;
+            return true;
+        }
+        return false;
+    }
     Reset() {
         this.Board = new Piece[WidthOfBoard][HeightOfBoard];
         this.CurrentPiece = Piece.GetRandomPiece();
         this.NextPiece = Piece.GetRandomPiece();
-        this.HoldPiece = null;
+        this.HeldPiece = null;
         this.Score = 0;
         this.ClearedLines = 0;
         this.IsPlaying = false;
-        this.Actions = [];
         this.HasHeldPiece = false;
+        this.Level = 0;
+        this.DropTimeStep = 0.6;
     }
     static ApplyFunctionToEachBlockInAPiece(piece, x, y, currentRotation, fn) {
         for (let i = 0; i < 16; i++)
@@ -82,91 +193,6 @@ class Piece {
                 return new I();
         }
     };
-    HasCollided(gameState, x, y, currentRotation) {
-        let result = false;
-        const fn = function (x, y) {
-            if (x < 0 || x >= WidthOfBoard || y < 0 || y >= HeightOfBoard || gameState.Board[x][y] == null)
-                result = true;
-        };
-        GameState.ApplyFunctionToEachBlockInAPiece(gameState.CurrentPiece, x, y, currentRotation, fn);
-        return result;
-    }
-    MoveRight(gameState) {
-        return this.Move(gameState, this.X + 1, this.Y);
-    }
-    MoveLeft(gameState) {
-        return this.Move(gameState, this.X - 1, this.Y);
-    }
-    MoveDown(gameState) {
-        return this.Move(gameState, this.X, this.Y - 1);
-    }
-    RotateClockwise(gameState) {
-        let newRotation = (gameState.CurrentPiece.CurrentRotation + 1) % gameState.CurrentPiece.Rotation.length;
-        if (!this.HasCollided(gameState, gameState.CurrentPiece.X, gameState.CurrentPiece.Y, newRotation))
-            gameState.CurrentPiece.CurrentRotation = newRotation;
-    }
-    RotateCounterClockwise(gameState) {
-        let newRotation = (gameState.CurrentPiece.CurrentRotation + 3) % gameState.CurrentPiece.Rotation.length;
-        if (!this.HasCollided(gameState, gameState.CurrentPiece.X, gameState.CurrentPiece.Y, newRotation))
-            gameState.CurrentPiece.CurrentRotation = newRotation;
-    }
-    Drop(gameState, isHoldingDown) {
-        if (isHoldingDown)
-            gameState.Score += 10;
-        if (!this.MoveDown(gameState))
-            this.AfterDrop(gameState);
-    }
-    HardDrop(gameState) {
-        while (this.MoveDown)
-            gameState.Score += 10;
-        gameState.Score += 10;
-        this.AfterDrop(gameState);
-    }
-    AfterDrop(gameState) {
-        this.CommitPieceToBoard(gameState);
-        this.RemoveLines(gameState);
-        gameState.CurrentPiece = gameState.NextPiece;
-        gameState.NextPiece = Piece.GetRandomPiece();
-        gameState.Actions = [];
-        gameState.HasHeldPiece = false;
-        if (this.HasCollided(gameState, gameState.CurrentPiece.X, gameState.CurrentPiece.Y, gameState.CurrentPiece.CurrentRotation))
-            gameState.Lose();
-    }
-    RemoveLines(gameState) {
-        let n = 0;
-        for (let y = HeightOfBoard; y > 0; --y) {
-            let isLineComplete = true;
-            for (let x = 0; x < WidthOfBoard; x++)
-                if (gameState.Board[x][y] == null)
-                    isLineComplete = false;
-            if (isLineComplete) {
-                this.RemoveLine(gameState, y);
-                y++;
-                n++;
-            }
-        }
-        if (n > 0) {
-            gameState.ClearedLines += n;
-            gameState.Score += Math.pow(2, n - 1) * 100;
-        }
-    }
-    RemoveLine(gameState, n) {
-        for (let y = n; y >= 0; --y)
-            for (let x = 0; x < WidthOfBoard; x++)
-                gameState.Board[x][y] = (y == 0) ? null : gameState.Board[x][y - 1];
-    }
-    CommitPieceToBoard(gameState) {
-        const fn = function (x, y) { gameState.Board[x][y] = gameState.CurrentPiece; };
-        GameState.ApplyFunctionToEachBlockInAPiece(gameState.CurrentPiece, gameState.CurrentPiece.X, gameState.CurrentPiece.Y, gameState.CurrentPiece.CurrentRotation, fn);
-    }
-    Move(gameState, x, y) {
-        if (!this.HasCollided(gameState, x, y, gameState.CurrentPiece.CurrentRotation)) {
-            gameState.CurrentPiece.X = x;
-            gameState.CurrentPiece.Y = y;
-            return true;
-        }
-        return false;
-    }
 }
 class I extends Piece {
     constructor() {

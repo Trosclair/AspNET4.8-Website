@@ -180,7 +180,6 @@ function onWindowResize(event) {
     willRefreshCourt = true;
     willRefreshNext = true;
     willRefreshHold = true;
-    hold = null;
 }
 
 function onKeyDown(ev) {
