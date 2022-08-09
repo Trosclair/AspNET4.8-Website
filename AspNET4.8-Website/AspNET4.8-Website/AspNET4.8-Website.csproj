@@ -229,6 +229,7 @@
     <Content Include="Scripts\jquery-3.4.1.min.map" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="Scripts\TSScripts\Pieces.ts" />
     <TypeScriptCompile Include="Scripts\TSScripts\TSTetris.ts" />
   </ItemGroup>
   <ItemGroup>

@@ -44,8 +44,6 @@ const KEY = { // ASCII codes for the controls
         ROTATELEFT: 4,
         HARDDROP: 5,
         HOLD: 6,
-        MIN: 0,
-        MAX: 3
     },
     boardCanvas = get('canvas'),
     ctx = boardCanvas.getContext('2d'),
@@ -72,7 +70,6 @@ let blockPixelSizeX, blockPixelSizeY,                   // pixel size of a singl
     next,                                               // the next piece
     hold,                                               // held piece
     score,                                              // the current score
-    vscore,                                             // the currently displayed score (it catches up to score in small chunks - like a spinning slot machine)
     rows,                                               // number of completed rows in the current game
     step,                                               // how long before current piece drops by 1 row
     hasHeldPiece,                                       // Player can only hold a piece once during a inbetween each piece drop.
