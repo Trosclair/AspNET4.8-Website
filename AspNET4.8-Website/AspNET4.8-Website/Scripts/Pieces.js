@@ -79,10 +79,28 @@ class Piece {
         return result;
     }
     MoveRight(gameState) {
-        const x = this.X + 1;
-        const y = this.Y;
+        return this.Move(gameState, this.X + 1, this.Y);
+    }
+    MoveLeft(gameState) {
+        return this.Move(gameState, this.X - 1, this.Y);
+    }
+    MoveDown(gameState) {
+        return this.Move(gameState, this.X, this.Y - 1);
+    }
+    RotateClockwise(gameState) {
+        let newRotation = (gameState.CurrentPiece.CurrentRotation + 1) % gameState.CurrentPiece.Rotation.length;
+        if (!this.HasCollided(gameState, gameState.CurrentPiece.X, gameState.CurrentPiece.Y, newRotation))
+            gameState.CurrentPiece.CurrentRotation = newRotation;
+    }
+    RotateCounterClockwise(gameState) {
+        let newRotation = (gameState.CurrentPiece.CurrentRotation + 3) % gameState.CurrentPiece.Rotation.length;
+        if (!this.HasCollided(gameState, gameState.CurrentPiece.X, gameState.CurrentPiece.Y, newRotation))
+            gameState.CurrentPiece.CurrentRotation = newRotation;
+    }
+    Move(gameState, x, y) {
         if (!this.HasCollided(gameState, x, y, gameState.CurrentPiece.CurrentRotation)) {
             gameState.CurrentPiece.X = x;
+            gameState.CurrentPiece.Y = y;
             return true;
         }
         return false;
@@ -90,7 +108,7 @@ class Piece {
 }
 class I extends Piece {
     constructor() {
-        super(4, [0x00F0, 0x2222, 0x00F0, 0x2222], 'cyan');
+        super(4, [0x00F0, 0x2222], 'cyan');
     }
 }
 class J extends Piece {
@@ -105,12 +123,12 @@ class L extends Piece {
 }
 class U extends Piece {
     constructor() {
-        super(2, [0xCC00, 0xCC00, 0xCC00, 0xCC00], 'yellow');
+        super(2, [0xCC00], 'yellow');
     }
 }
 class S extends Piece {
     constructor() {
-        super(3, [0x06C0, 0x4620, 0x06C0, 0x4620], 'green');
+        super(3, [0x06C0, 0x4620], 'green');
     }
 }
 class T extends Piece {
@@ -120,7 +138,7 @@ class T extends Piece {
 }
 class Z extends Piece {
     constructor() {
-        super(3, [0x0C60, 0x2640, 0x0C60, 0x2640], 'red');
+        super(3, [0x0C60, 0x2640], 'red');
     }
 }
 //# sourceMappingURL=Pieces.js.map
