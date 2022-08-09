@@ -11,7 +11,7 @@ enum Direction {
     HOLD = 6,
 }
 
-class GameState {
+export class GameState {
     public Board: Piece[][];
     public CurrentPiece: Piece;
     public HoldPiece: Piece;
@@ -20,14 +20,30 @@ class GameState {
     public ClearedLines: number;
     public IsPlaying: boolean;
     public Actions: Direction[];
+    public HasHeldPiece: boolean;
 
     constructor() {
+        this.Reset();
+    }
+
+    public Play() {
+        this.IsPlaying = true;
+    }
+
+    public Lose() {
+        this.IsPlaying = false;
+    }
+
+    private Reset() {
         this.Board = new Piece[WidthOfBoard][HeightOfBoard];
         this.CurrentPiece = Piece.GetRandomPiece();
         this.NextPiece = Piece.GetRandomPiece();
         this.HoldPiece = null;
         this.Score = 0;
         this.ClearedLines = 0;
+        this.IsPlaying = false;
+        this.Actions = [];
+        this.HasHeldPiece = false;
     }
 
     public static ApplyFunctionToEachBlockInAPiece(piece: Piece, x: number, y: number, currentRotation: number, fn: (x: number, y: number) => void) {
@@ -109,6 +125,62 @@ abstract class Piece {
         let newRotation: number = (gameState.CurrentPiece.CurrentRotation + 3) % gameState.CurrentPiece.Rotation.length;
         if (!this.HasCollided(gameState, gameState.CurrentPiece.X, gameState.CurrentPiece.Y, newRotation))
             gameState.CurrentPiece.CurrentRotation = newRotation;
+    }
+
+    public Drop(gameState: GameState, isHoldingDown: boolean) {
+        if (isHoldingDown)
+            gameState.Score += 10;
+
+        if (!this.MoveDown(gameState))
+            this.AfterDrop(gameState);
+    }
+
+    public HardDrop(gameState: GameState) {
+        while (this.MoveDown)
+            gameState.Score += 10;
+        gameState.Score += 10;
+        this.AfterDrop(gameState);
+    }
+
+    private AfterDrop(gameState: GameState) {
+        this.CommitPieceToBoard(gameState);
+        this.RemoveLines(gameState);
+        gameState.CurrentPiece = gameState.NextPiece;
+        gameState.NextPiece = Piece.GetRandomPiece();
+        gameState.Actions = [];
+        gameState.HasHeldPiece = false;
+        if (this.HasCollided(gameState, gameState.CurrentPiece.X, gameState.CurrentPiece.Y, gameState.CurrentPiece.CurrentRotation))
+            gameState.Lose();
+    }
+
+    private RemoveLines(gameState: GameState) {
+        let n: number = 0;
+        for (let y: number = HeightOfBoard; y > 0; --y) {
+            let isLineComplete: boolean = true;
+            for (let x: number = 0; x < WidthOfBoard; x++)
+                if (gameState.Board[x][y] == null)
+                    isLineComplete = false;
+            if (isLineComplete) {
+                this.RemoveLine(gameState, y);
+                y++
+                n++;
+            }
+        }
+        if (n > 0) {
+            gameState.ClearedLines += n;
+            gameState.Score += Math.pow(2, n - 1) * 100;
+        }
+    }
+
+    private RemoveLine(gameState: GameState, n: number) {
+        for (let y: number = n; y >= 0; --y)
+            for (let x: number = 0; x < WidthOfBoard; x++)
+                gameState.Board[x][y] = (y == 0) ? null : gameState.Board[x][y - 1];
+    }
+
+    private CommitPieceToBoard(gameState: GameState) {
+        const fn = function (x: number, y: number) { gameState.Board[x][y] = gameState.CurrentPiece; }
+        GameState.ApplyFunctionToEachBlockInAPiece(gameState.CurrentPiece, gameState.CurrentPiece.X, gameState.CurrentPiece.Y, gameState.CurrentPiece.CurrentRotation, fn)
     }
 
     private Move(gameState: GameState, x: number, y: number): boolean {

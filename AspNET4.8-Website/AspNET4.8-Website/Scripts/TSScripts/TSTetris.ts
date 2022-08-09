@@ -25,5 +25,5 @@ const holdCanvas: HTMLCanvasElement = <HTMLCanvasElement>document.getElementById
 const hctx: CanvasRenderingContext2D = boardCanvas.getContext('2d');
 const widthAndHeightOfPreviewWindowInBlocks: number = 5;
 
-
+let GameState: Pieces.GameState = new Pieces.GameState();
 
