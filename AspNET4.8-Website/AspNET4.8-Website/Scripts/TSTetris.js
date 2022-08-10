@@ -52,6 +52,7 @@ class GameState {
         this.DropTimeStep = 0.6;
     }
     Play() {
+        this.Reset();
         this.IsPlaying = true;
     }
     Lose() {
@@ -92,7 +93,7 @@ class GameState {
         let result = false;
         let board = this.Board;
         const fn = function (x, y) {
-            if (x < 0 || x >= WidthOfBoard || y < 0 || y >= HeightOfBoard || board[x][y] == null)
+            if (x < 0 || x >= WidthOfBoard || y < 0 || y >= HeightOfBoard || board[x][y] != null)
                 result = true;
         };
         GameState.ApplyFunctionToEachBlockInAPiece(this.CurrentPiece, x, y, currentRotation, fn);
@@ -105,7 +106,7 @@ class GameState {
         return this.Move(this.CurrentPiece.X - 1, this.CurrentPiece.Y);
     }
     MoveDown() {
-        return this.Move(this.CurrentPiece.X, this.CurrentPiece.Y - 1);
+        return this.Move(this.CurrentPiece.X, this.CurrentPiece.Y + 1);
     }
     RotateClockwise() {
         let newRotation = (this.CurrentPiece.CurrentRotation + 1) % this.CurrentPiece.Rotation.length;
@@ -124,7 +125,7 @@ class GameState {
             this.AfterDrop();
     }
     HardDrop() {
-        while (this.MoveDown)
+        while (this.MoveDown())
             this.Score += 10;
         this.Score += 10;
         this.AfterDrop();

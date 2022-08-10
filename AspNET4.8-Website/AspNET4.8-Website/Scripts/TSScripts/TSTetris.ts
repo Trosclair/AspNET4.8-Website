@@ -58,6 +58,7 @@ class GameState {
     }
 
     public Play() {
+        this.Reset();
         this.IsPlaying = true;
     }
 
@@ -106,7 +107,7 @@ class GameState {
         let result: boolean = false;
         let board: Piece[][] | null[][] = this.Board;
         const fn = function (x: number, y: number) {
-            if (x < 0 || x >= WidthOfBoard || y < 0 || y >= HeightOfBoard || board[x][y] == null)
+            if (x < 0 || x >= WidthOfBoard || y < 0 || y >= HeightOfBoard || board[x][y] != null)
                 result = true;
         }
         GameState.ApplyFunctionToEachBlockInAPiece(this.CurrentPiece, x, y, currentRotation, fn);
@@ -122,7 +123,7 @@ class GameState {
     }
 
     public MoveDown(): boolean {
-        return this.Move(this.CurrentPiece.X, this.CurrentPiece.Y - 1);
+        return this.Move(this.CurrentPiece.X, this.CurrentPiece.Y + 1);
     }
 
     public RotateClockwise() {
@@ -146,7 +147,7 @@ class GameState {
     }
 
     public HardDrop() {
-        while (this.MoveDown)
+        while (this.MoveDown())
             this.Score += 10;
         this.Score += 10;
         this.AfterDrop();
