@@ -10,7 +10,12 @@ namespace TailWindTest.Controllers
             return View();
         }
 
-        public ActionResult Tetris()
+        public ActionResult JSTetris()
+        {
+            return View();
+        }
+
+        public ActionResult TSTetris()
         {
             return View();
         }

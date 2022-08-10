@@ -1,0 +1,32 @@
+﻿@using Website.Models;
+
+@{
+    ViewBag.Title = "JSTetris";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link type="text/css" rel="stylesheet" href="~/Content/Tetris.css" />
+
+<div style="display: flex; align-content: center" id="tetris">
+    <div id="menu">
+        <p style="color: white;" id="start"><a href="javascript:play();">Press Space to Play.</a></p>
+        <p style="color: white;">Score: <span id="score">00000</span></p>
+        <p style="color: white;">Rows: <span id="rows">0</span></p>
+    </div>
+    <canvas id="canvas">
+        Sorry, this example cannot be run because your browser does not support the &lt;canvas&gt; element
+    </canvas>
+    <div>
+        <div>
+            <p style="color: white;">Next:</p>
+            <canvas id="upcoming" />
+        </div>
+        <div>
+            <p style="color: white;">Hold:</p>
+            <canvas style="height: 200px; width: 200px; background-color: #E0E0E0;" id="hold" />
+        </div>
+    </div>
+</div>
+
+<script src="~/Scripts/JSTetris.js"></script>
+
