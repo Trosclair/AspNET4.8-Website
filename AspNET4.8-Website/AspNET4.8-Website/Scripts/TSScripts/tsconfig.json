@@ -3,7 +3,10 @@
     "noImplicitAny": false,
     "noEmitOnError": true,
     "removeComments": false,
+    "module": "ESNext",
+    "moduleResolution": "node",
     "sourceMap": true,
+    "esModuleInterop": true,
     "target": "ESNext",
     "outDir": "../"
   },

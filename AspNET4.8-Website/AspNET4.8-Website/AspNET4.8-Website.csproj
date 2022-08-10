@@ -187,7 +187,6 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
     <Content Include="Scripts\JSTetris.js" />
-    <Content Include="Scripts\Pieces.js" />
     <Content Include="Scripts\TSTetris.js" />
     <Content Include="Styles\app.css" />
     <Content Include="tailwind.config.js" />
@@ -231,7 +230,6 @@
     <Content Include="Scripts\jquery-3.4.1.min.map" />
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="Scripts\TSScripts\Pieces.ts" />
     <TypeScriptCompile Include="Scripts\TSScripts\TSTetris.ts" />
   </ItemGroup>
   <ItemGroup>
